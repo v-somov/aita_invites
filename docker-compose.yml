@@ -1,0 +1,65 @@
+version: '3'
+services:
+  node: &node
+    image: node:15
+    volumes:
+      - .:/app:cached
+      # Where to store global packages
+      - npm_data:${NPM_CONFIG_PREFIX:-/node/.npm-global}
+      - .docker/history:/usr/local/hist
+      - .docker/.bashrc:/root/.bashrc:ro
+    environment:
+      POSTGRES_USER: dev-user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      NODE_ENV: dev
+      NPM_CONFIG_PREFIX: ${NPM_CONFIG_PREFIX:-/node/.npm-global}
+      HISTFILE: /usr/local/hist/.bash_history
+      PROMPT_DIRTRIM: 2
+      PS1: '[\W]\! '
+    working_dir: /app
+    tmpfs:
+      - /tmp
+
+  runner:
+    <<: *node
+    command: /bin/bash
+    depends_on:
+      - postgres
+
+  app: &app
+    <<: *node
+    working_dir: /app
+    ports:
+      - '9000:9000'
+      - '9229:9229'
+    command: [yarn, run, dev]
+    depends_on:
+      - postgres
+
+  debug_app:
+    <<: *app
+    command: [yarn, run, debug]
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: dev-user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PSQL_HISTFILE: /root/log/.psql_history
+    ports:
+      - 5435:5432
+    healthcheck:
+      test: pg_isready -U dev-user -h 127.0.0.1
+      interval: 5s
+    volumes:
+      - .docker/.psqlrc:/root/.psqlrc:ro
+      - postgres:/var/lib/postgresql/data
+      - ./log:/root/log:cached
+
+volumes:
+  npm_data:
+  postgres:
+

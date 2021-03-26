@@ -1,0 +1,26 @@
+{
+  "defaultEnv": {"ENV": "NODE_ENV"},
+  "dev": {
+    "driver": "pg",
+    "host": {"ENV": "POSTGRES_HOST"},
+    "user": {"ENV": "POSTGRES_USER"},
+    "password": {"ENV": "POSTGRES_PASSWORD"},
+    "database": "aita_invites_dev",
+    "port": {"ENV": "POSTGRES_PORT"}
+  },
+  "test": {
+    "driver": "pg",
+    "host": {"ENV": "POSTGRES_HOST"},
+    "user": {"ENV": "POSTGRES_USER"},
+    "password": {"ENV": "POSTGRES_PASSWORD"},
+    "database": "aita_invites_test",
+    "port": {"ENV": "POSTGRES_PORT"}
+  },
+  "setup": {
+    "driver": "pg",
+    "host": {"ENV": "POSTGRES_HOST"},
+    "user": {"ENV": "POSTGRES_USER"},
+    "password": {"ENV": "POSTGRES_PASSWORD"},
+    "port": {"ENV": "POSTGRES_PORT"}
+  }
+}
