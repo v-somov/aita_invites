@@ -1,25 +1,21 @@
 import * as express from "express";
 import { Application } from "express";
 import { router } from "./routes";
-import { notFound, errorHandlerMiddleware } from "./middlewares";
+import { notFound, errorHandlerMiddleware, logger } from "./middlewares";
+import asyncHandler from "express-async-handler";
 
 const app: Application = express.default();
 
-// const bodyParser = require("body-parser");
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
+app.use(logger);
+app.use("/", asyncHandler(router));
 
-// app.get("/", (req, res) => res.send("App is working"));
-app.use("/", router);
+app.use(asyncHandler(notFound));
 
-// app.use("/api", routes);
-
-app.use(notFound);
 app.use(errorHandlerMiddleware);
 
 app.use(express.static("public"));
-app.use(express.static("views"));
 
+app.set("views", "views");
 app.set("view engine", "pug");
 
 export { app };

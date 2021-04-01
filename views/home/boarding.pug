@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Aita Invites
+  body
+    h2 Name:
+      p#name #{name}
+    h2 Distance:
+      p#distance #{distance}
+    h2 Hours:
+      p#hours #{hours}
+
+  script(src='/socket.io/socket.io.js')
+  script.
+    const socket = io();
+
+    function update(fieldName, text) {
+      var field = document.getElementById(fieldName)
+      field.innerText = text
+    }
+
+    socket.on("userArrived", (data) => {
+      update('name', data.name)
+      update('distance', data.distance)
+      update('hours', data.hours)
+    });
+
+
+  style.
+    p {
+      display: inline;
+      margin-left: 10px
+    }

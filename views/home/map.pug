@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+html(lang="en")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Aita Invites
+  body
+    table#userArrivedTable
+      thead
+        th Name
+        th Distance
+        th Hours
+      p#error
+      tbody#userArrivedTableBody
+
+  script.
+    function appendRow(data) {
+      var table = document.getElementById("userArrivedTableBody");
+      var row = table.insertRow(0);
+      var nameCell = row.insertCell(0);
+      var distanceCell = row.insertCell(1);
+      var hoursCell = row.insertCell(2);
+      nameCell.innerText = data.name;
+      distanceCell.innerText = data.distance;
+      hoursCell.innerText = data.hours;
+    }
+
+    function showErrorMessage(msg) {
+      var tableRows = document.getElementById("userArrivedTableBody");
+      var error = document.getElementById("error");
+      tableRows.innerHTML = "";
+      error.innerText = "Something went wrong!";
+      error.style.display = "block";
+    }
+
+    function hideErrorMessage() {
+      var error = document.getElementById("error");
+      error.style.display = "none";
+    }
+
+    const source = new EventSource("/map_streaming")
+    source.addEventListener('message', event => {
+      hideErrorMessage();
+      JSON.parse(event.data).forEach((user) => appendRow(user))
+    });
+
+    source.addEventListener('error', function(e) {
+      showErrorMessage();
+    });
+
+  style.
+    p {
+      display: inline;
+      margin-left: 10px
+    }
+
+    p#error {
+      display: none;
+      text-color: red;
+    }

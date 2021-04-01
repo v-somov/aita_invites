@@ -16,6 +16,14 @@
     "database": "aita_invites_test",
     "port": {"ENV": "POSTGRES_PORT"}
   },
+  "production": {
+    "driver": "pg",
+    "host": {"ENV": "POSTGRES_HOST"},
+    "user": {"ENV": "POSTGRES_USER"},
+    "password": {"ENV": "POSTGRES_PASSWORD"},
+    "database": "aita_invites_production",
+    "port": {"ENV": "POSTGRES_PORT"}
+  },
   "setup": {
     "driver": "pg",
     "host": {"ENV": "POSTGRES_HOST"},

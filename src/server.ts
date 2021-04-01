@@ -1,11 +1,19 @@
 import { app } from "./app";
 import http from "http";
 import { AddressInfo } from "net";
+import { Server, Socket } from "socket.io";
 
-const port: number = parseInt(process.env.PORT) || 9000;
+const port: number = parseInt(process.env.PORT || "9000");
 app.set("port", port);
 
 const server = http.createServer(app);
+
+export const io = new Server(server, {});
+app.set("io", io);
+
+io.on("connection", (socket: Socket) => {
+  console.log("a user connected");
+});
 
 server.listen(port);
 
@@ -18,7 +26,7 @@ function pipeOrPort(address: string | AddressInfo) {
     : `port ${address.port}`;
 }
 
-function onError(error: Error) {
+function onError(error: NodeJS.ErrnoException) {
   if (error.syscall != "listen") {
     throw error;
   }

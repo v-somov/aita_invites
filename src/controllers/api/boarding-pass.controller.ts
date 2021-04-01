@@ -1,78 +1,58 @@
-import * as express from "express";
-import { Request, Response } from "express";
-import IControllerBase from "../../../interfaces/IControllerBase.interface";
-import db from "../../../db";
-import { v4 as uuid } from "uuid";
+import { NextFunction, Request, Response } from "express";
+import db from "../../db";
+import { HttpError } from "../../errors";
+import { boardingPassService } from "../../services";
 
-class BoardingPassController implements IControllerBase {
-  public path = "/api/boarding_pass";
-  public router = express.Router();
-
-  constructor() {
-    this.initRoutes();
-  }
-
-  public initRoutes() {
-    this.router.get(this.path + "/:id", this.show);
-    this.router.post("/api/users/:id/boarding_pass", this.create);
-    this.router.put("/api/boarding_pass/:invite_code", this.update);
-  }
-
-  show = async (req: Request, res: Response, next) => {
-    db.one(
-      "select name, distance, hours from users where id = $1",
-      req.params.id
-    )
-      .then(data => {
-        res.status(200).json({
-          data: data
-        });
-      })
-      .catch(next);
-  };
-
-  create = async (req: Request, res: Response, next) => {
-    const userId = req.params.id;
-    try {
-      const insert = await db.one(
-        `insert into boarding_passes(invite_code, user_id, status)
-         values($1, $2, $3) returning id`,
-        [uuid(), userId, "pending"]
-      );
-      const data = await db.one(
-        `select users.name, boarding_passes.invite_code
-         from boarding_passes
-         join users on users.id = boarding_passes.user_id
-         where boarding_passes.id = $1`,
-        [insert.id]
-      );
-
+const createBoardingPass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = parseInt(req.params.id);
+    const ext = req.params.ext;
+    if (ext == "pdf") {
+      const pdfData = await boardingPassService.generatePdfBoardingPass(userId);
+      res
+        .writeHead(200, {
+          "Content-Length": Buffer.byteLength(pdfData),
+          "Content-Type": "application/pdf",
+          "Content-disposition": `attachment;filename=${userId}.pdf`,
+        })
+        .end(pdfData);
+    } else {
+      const data = await boardingPassService.generateBoardingPass(userId);
       res.status(200).json({
-        data: data
+        data: data,
       });
-    } catch (error) {
-      next(error);
     }
-  };
+  } catch (e) {
+    const err = new HttpError(e.message, 400);
+    next(err);
+  }
+};
 
-  update = async (req: Request, res: Response, next) => {
+const updateBoardingPass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
     const inviteCode = req.params.invite_code;
-    try {
-      const result = await db.one(
-        `update boarding_passes set status = 'arrived'
-         where invite_code = $1 and status = 'pending'
-         returning user_id`,
-        [inviteCode]
-      );
-      res.status(200).json({
-        data: result
-      });
-    } catch (error) {
-      console.log(error);
-      next(error);
-      // next(new BadRequestError("boarding pass is invalid!"));
-    }
-  };
-}
+    const userId = await boardingPassService.updateBoardingPass(inviteCode);
 
-export default BoardingPassController;
+    const io = req.app.get("io");
+    io.emit(
+      "userArrived",
+      await db.one(`select * from users where id = $1`, [userId])
+    );
+
+    res.status(200).json({
+      data: { user_id: userId },
+    });
+  } catch (e) {
+    next(new HttpError(e.message, 404));
+  }
+};
+
+export { createBoardingPass, updateBoardingPass };
