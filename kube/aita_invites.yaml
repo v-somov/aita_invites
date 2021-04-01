@@ -17,8 +17,7 @@ spec:
           image: postgres
           command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for database; sleep 2; done;']
         - name: migrations
-          image: aita_invites
-          imagePullPolicy: Never
+          image: v1adis1avs/aita_invites:1.0
           command: ['node']
           args: ['node_modules/db-migrate/bin/db-migrate', 'up', '--config', 'config/database.json', '-e', 'production']
           env:
@@ -29,8 +28,7 @@ spec:
                   name: postgres-config
       containers:
         - name: app
-          image: aita_invites
-          imagePullPolicy: Never
+          image: v1adis1avs/aita_invites:1.0
           ports:
             - containerPort: 3000
           env:
