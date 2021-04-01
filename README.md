@@ -10,6 +10,15 @@
 
 ### Using kubernetes
 
+#### Using remote image from docker hub
+
+- switch to branch docker_hub
+- `kubectl apply -f kube`
+- `kubectl get pods --watch` and wait for both services to have status RUNNING
+- `minikube service aita-invites --url` and paste it to browser on postman collection to be able access the service
+
+#### Using local remote image
+
 - Before proceed with next steps make sure that kubernetes and minikube is installed or other alternatives
 - `yarn install`
 - `yarn build`
