@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aita-invites
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aita-invites
+  template:
+    metadata:
+      labels:
+        app: aita-invites
+    spec:
+      initContainers:
+        - name: check-db-ready
+          image: postgres
+          command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for database; sleep 2; done;']
+        - name: migrations
+          image: aita_invites
+          imagePullPolicy: Never
+          command: ['node']
+          args: ['node_modules/db-migrate/bin/db-migrate', 'up', '--config', 'config/database.json', '-e', 'production']
+          env:
+            - name: NODE_ENV
+              value: production
+          envFrom:
+              - configMapRef:
+                  name: postgres-config
+      containers:
+        - name: app
+          image: aita_invites
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+          envFrom:
+              - configMapRef:
+                  name: postgres-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aita-invites
+spec:
+  selector:
+    app: aita-invites
+  ports:
+    - port: 9000
+      targetPort: 9000
+  type: LoadBalancer
