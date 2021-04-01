@@ -17,7 +17,7 @@
 - `kubectl get pods --watch` and wait for both services to have status RUNNING
 - `minikube service aita-invites --url` and paste it to browser on postman collection to be able access the service
 
-#### Using local remote image
+#### Using local image
 
 - Before proceed with next steps make sure that kubernetes and minikube is installed or other alternatives
 - `yarn install`
